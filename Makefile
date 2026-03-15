@@ -1,54 +1,86 @@
-PYTHON ?= python3
-PUZZLE ?= puzzle.txt
-SIZE ?= 3
-ITERATIONS ?= 10000
-HEURISTIC ?= linear
-ALGORITHM ?= auto
-GEN_FLAGS ?= -s
+NAME = n-puzzle
+SIZE = 3
+FILE = puzzle.txt
+ITERATIONS = 10000
+PYTHON = python3
+GREEN  = \033[0;32m
+YELLOW = \033[0;33m
+RESET  = \033[0m
 
-.PHONY: help solve solve-path random generate clean
+all:
+	@echo "$(GREEN)N-Puzzle Solver$(RESET)"
+	@echo "Usage:"
+	@echo "  make run FILE=puzzle.txt        - Solve a puzzle file"
+	@echo "  make gen SIZE=3 ITERATIONS=10000 - Generate a solvable puzzle"
+	@echo "  make gen_unsolvable SIZE=3      - Generate an unsolvable puzzle"
+	@echo "  make test                       - Run tests on 3x3, 4x4, 5x5"
+	@echo "  make clean                      - Remove generated files"
 
-help:
-	@echo "Available targets:"
-	@echo "  make solve                        Solve PUZZLE=$(PUZZLE)"
-	@echo "  make solve-path                   Solve and print the full solution path"
-	@echo "  make random                       Generate and solve a random puzzle"
-	@echo "  make generate                     Generate a puzzle with npuzzle-gen.py"
-	@echo "  make clean                        Remove Python cache files"
-	@echo ""
-	@echo "Variables:"
-	@echo "  PYTHON=$(PYTHON)"
-	@echo "                        Python executable used to run scripts"
-	@echo "  PUZZLE=$(PUZZLE)"
-	@echo "                        Path to puzzle file for solve/solve-path"
-	@echo "  SIZE=$(SIZE)"
-	@echo "                        Puzzle size for random/generate"
-	@echo "  ITERATIONS=$(ITERATIONS)"
-	@echo "                        Number of shuffle passes (default: 10000)"
-	@echo "  HEURISTIC=$(HEURISTIC)"
-	@echo "                        Heuristic: linear, manhattan, hamming"
-	@echo "  ALGORITHM=$(ALGORITHM)"
-	@echo "                        Algorithm: auto, astar, idastar"
-	@echo "  GEN_FLAGS=$(GEN_FLAGS)"
-	@echo "                        Generator flags: -s (solvable) or -u (unsolvable)"
-	@echo ""
-	@echo "Examples:"
-	@echo "  make solve HEURISTIC=manhattan"
-	@echo "  make solve ALGORITHM=idastar"
-	@echo "  make random SIZE=4 ITERATIONS=500 HEURISTIC=hamming"
 
-solve:
-	$(PYTHON) main.py $(PUZZLE) -f $(HEURISTIC) -a $(ALGORITHM)
+run:
+	$(PYTHON) main.py $(FILE)
 
-solve-path:
-	$(PYTHON) main.py $(PUZZLE) -f $(HEURISTIC) -a $(ALGORITHM) -p
 
-random:
-	$(PYTHON) main.py -s $(SIZE) -i $(ITERATIONS) -f $(HEURISTIC) -a $(ALGORITHM)
+run_manhattan:
+	$(PYTHON) main.py $(FILE) -f manhattan
 
-generate:
-	@echo "# $(PYTHON) npuzzle-gen.py $(SIZE) $(GEN_FLAGS) -i $(ITERATIONS)"
-	@$(PYTHON) npuzzle-gen.py $(SIZE) $(GEN_FLAGS) -i $(ITERATIONS)
+run_hamming:
+	$(PYTHON) main.py $(FILE) -f hamming
+
+run_linear:
+	$(PYTHON) main.py $(FILE) -f linear
+
+
+run_greedy:
+	$(PYTHON) main.py $(FILE) -f linear -m greedy
+
+run_uniform:
+	$(PYTHON) main.py $(FILE) -m uniform
+
+
+gen:
+	@echo "$(YELLOW)Generating solvable $(SIZE)x$(SIZE) puzzle...$(RESET)"
+	$(PYTHON) npuzzle-gen.py $(SIZE) -s -i $(ITERATIONS) > $(FILE)
+	@echo "$(GREEN)Puzzle saved to $(FILE)$(RESET)"
+	@cat $(FILE)
+
+gen_unsolvable:
+	@echo "$(YELLOW)Generating unsolvable $(SIZE)x$(SIZE) puzzle...$(RESET)"
+	$(PYTHON) npuzzle-gen.py $(SIZE) -u > puzzle_unsolvable.txt
+	@echo "$(GREEN)Puzzle saved to puzzle_unsolvable.txt$(RESET)"
+	@cat puzzle_unsolvable.txt
+
+
+test:
+	@echo "$(YELLOW)Testing 3x3...$(RESET)"
+	$(PYTHON) npuzzle-gen.py 3 -s > test3.txt
+	$(PYTHON) main.py test3.txt -f linear
+	@echo "$(YELLOW)Testing 4x4...$(RESET)"
+	$(PYTHON) npuzzle-gen.py 4 -s -i 100 > test4.txt
+	$(PYTHON) main.py test4.txt -f linear
+	@echo "$(YELLOW)Testing 5x5...$(RESET)"
+	$(PYTHON) npuzzle-gen.py 5 -s -i 50 > test5.txt
+	$(PYTHON) main.py test5.txt -f linear
+	@echo "$(GREEN)All tests done!$(RESET)"
+
+
+test_unsolvable:
+	@echo "$(YELLOW)Testing unsolvable puzzle...$(RESET)"
+	$(PYTHON) npuzzle-gen.py 3 -u > test_unsolvable.txt
+	$(PYTHON) main.py test_unsolvable.txt
+
 
 clean:
-	find . -type d -name __pycache__ -prune -exec rm -rf {} +
+	@rm -f test3.txt test4.txt test5.txt test_unsolvable.txt puzzle_unsolvable.txt
+	@find . -name "*.pyc" -delete
+	@find . -name "__pycache__" -type d -exec rm -rf {} +
+	@echo "$(GREEN)Cleaned!$(RESET)"
+
+fclean: clean
+	@rm -f $(FILE)
+
+re: fclean all
+
+.PHONY: all run run_manhattan run_hamming run_linear \
+        run_greedy run_uniform gen gen_unsolvable \
+        test test_unsolvable clean fclean re

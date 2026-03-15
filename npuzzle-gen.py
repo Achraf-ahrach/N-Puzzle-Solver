@@ -64,7 +64,11 @@ if __name__ == "__main__":
     parser.add_argument("size", type=int, help="Size of the puzzle's side. Must be >3.")
     parser.add_argument("-s", "--solvable", action="store_true", default=False, help="Forces generation of a solvable puzzle. Overrides -u.")
     parser.add_argument("-u", "--unsolvable", action="store_true", default=False, help="Forces generation of an unsolvable puzzle")
-    parser.add_argument("-i", "--iterations", type=int, default=10000, help="Number of passes")
+    parser.add_argument(
+        "-i", "--iterations",
+        type=int,
+        default=10000,
+        help="Iterations for random generation (default: 10000)")
 
     args = parser.parse_args()
 
@@ -76,6 +80,10 @@ if __name__ == "__main__":
 
     if args.size < 3:
         print("Can't generate a puzzle with size lower than 2. It says so in the help. Dummy.")
+        sys.exit(1)
+
+    if args.iterations < 1:
+        print("Iterations must be >= 1.")
         sys.exit(1)
 
     if not args.solvable and not args.unsolvable:

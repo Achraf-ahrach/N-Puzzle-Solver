@@ -71,7 +71,7 @@ test_unsolvable:
 
 
 clean:
-	@rm -f test3.txt test4.txt test5.txt test_unsolvable.txt puzzle_unsolvable.txt
+	@rm -f ./*.txt
 	@find . -name "*.pyc" -delete
 	@find . -name "__pycache__" -type d -exec rm -rf {} +
 	@echo "$(GREEN)Cleaned!$(RESET)"

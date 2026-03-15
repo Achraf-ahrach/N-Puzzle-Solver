@@ -81,6 +81,12 @@ def generate_random(size, iterations=10000):
     return size, board
 
 
+def choose_algorithm(size, requested):
+    if requested == "auto":
+        return "astar" if size <= 3 else "idastar"
+    return requested
+
+
 def print_board(tiles, size):
     w = len(str(size * size))
     for i in range(size):
@@ -106,6 +112,17 @@ def main():
         type=int,
         default=10000,
         help="Iterations for random generation (default: 10000)"
+    )
+    parser.add_argument(
+        "-a", "--algorithm",
+        choices=["auto", "astar", "idastar"],
+        default="auto",
+        help="Algorithm: auto, astar, idastar (default: auto)"
+    )
+    parser.add_argument(
+        "-p", "--print-path",
+        action="store_true",
+        help="Print the full solution path"
     )
     args = parser.parse_args()
 
@@ -140,8 +157,9 @@ def main():
     heuristic_fn = HEURISTICS[args.function]
     print(f"Heuristic    : {args.function}")
 
-    # 4. Algo selon taille
-    if size <= 3:
+    # 4. Algo
+    algorithm = choose_algorithm(size, args.algorithm)
+    if algorithm == "astar":
         print("Algorithm    : A*\n")
         path, time_c, space_c = astar(start_tiles, goal_tiles, size, heuristic_fn)
     else:
@@ -156,9 +174,10 @@ def main():
     print(f"Time complexity  : {time_c} states selected")
     print(f"Space complexity : {space_c} states in memory")
     print(f"Number of moves  : {len(path) - 1}")
-    print("\nSolution path:")
-    for state in path:
-        print_board(state.tiles, size)
+    if args.print_path:
+        print("\nSolution path:")
+        for state in path:
+            print_board(state.tiles, size)
 
 
 if __name__ == "__main__":

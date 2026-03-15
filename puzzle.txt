@@ -1,5 +1,6 @@
-# This puzzle is solvable
+# python3 npuzzle-gen.py 3 -u -i 10000
+# This puzzle is unsolvable
 3
-3 2 0
-5 7 6
-1 8 4
+4 2 5
+3 0 1
+7 6 8
